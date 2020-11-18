@@ -107,7 +107,8 @@ func (ar *AppMeshv1beta2Router) reconcileVirtualNode(canary *flaggerv1.Canary, n
 		bk := appmeshv1.Backend{
 			VirtualService: appmeshv1.VirtualServiceBackend{
 				VirtualServiceRef: appmeshv1.VirtualServiceReference{
-					Name: b,
+					Name:      b.name,
+					Namespace: b.namespace,
 				},
 			},
 		}

@@ -173,7 +173,7 @@ type CanaryService struct {
 
 	// Backends of the generated App Mesh virtual nodes
 	// +optional
-	Backends []string `json:"backends,omitempty"`
+	Backends []Backend `json:"backends,omitempty"`
 
 	// Apex is metadata to add to the apex service
 	// +optional
@@ -369,6 +369,13 @@ type CrossNamespaceObjectReference struct {
 type CustomMetadata struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+// Backend holds namespace and name of App Mesh Virtual Service
+type Backend struct {
+	// Namespace
+	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"name"`
 }
 
 // GetServiceNames returns the apex, primary and canary Kubernetes service names
