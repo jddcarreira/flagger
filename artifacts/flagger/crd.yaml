@@ -150,7 +150,15 @@ spec:
                   description: AppMesh backend array
                   type: array
                   items:
-                    type: string
+                    type: object
+                    required: ["name"]
+                    properties:
+                      name:
+                        description: Name of the Virtual Service
+                        type: string
+                      namespace:
+                        description: Namespace of Virtual Service
+                        type: string
                 hosts:
                   description: The list of host names for this service
                   type: array
