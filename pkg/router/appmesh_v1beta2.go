@@ -90,6 +90,37 @@ func (ar *AppMeshv1beta2Router) Reconcile(canary *flaggerv1.Canary) error {
 	return nil
 }
 
+// makeOutlierDetection generates AWS App Mesh Outlier Detection
+// the values are based on the same configuration for Istio
+func (ar *AppMeshv1beta2Router) makeOutlierDetection (canary *flaggerv1.Canary) *appmeshv1.OutlierDetection {
+	if canary.Spec.Service.TrafficPolicy.OutlierDetection != nil {
+		interval := int64(250)
+		if d, err := time.ParseDuration(canary.Spec.Service.TrafficPolicy.OutlierDetection.Interval); err == nil {
+			interval = d.Milliseconds()
+		}
+
+		ejectionTime := int64(250)
+		if d, err := time.ParseDuration(canary.Spec.Service.TrafficPolicy.OutlierDetection.BaseEjectionTime); err == nil {
+			ejectionTime = d.Milliseconds()
+		}
+
+		outlierDetectionRule := &appmeshv1.OutlierDetection{
+			MaxServerErrors: int64(canary.Spec.Service.TrafficPolicy.OutlierDetection.ConsecutiveErrors),
+			Interval: appmeshv1.Duration{
+				Unit:  appmeshv1.DurationUnitMS,
+				Value: interval,
+			},
+			BaseEjectionDuration: appmeshv1.Duration{
+				Unit:  appmeshv1.DurationUnitMS,
+				Value: ejectionTime,
+			},
+			MaxEjectionPercent: int64(canary.Spec.Service.TrafficPolicy.OutlierDetection.MaxEjectionPercent),
+		}
+		return outlierDetectionRule
+	}
+	return nil
+}
+
 // reconcileVirtualNode creates or updates a virtual node
 // the virtual node naming format is name-role-namespace
 func (ar *AppMeshv1beta2Router) reconcileVirtualNode(canary *flaggerv1.Canary, name string, podSelector string, host string) error {
@@ -104,6 +135,7 @@ func (ar *AppMeshv1beta2Router) reconcileVirtualNode(canary *flaggerv1.Canary, n
 					Protocol: protocol,
 				},
 				Timeout: timeout,
+				OutlierDetection: ar.makeOutlierDetection(canary),
 			},
 		},
 		ServiceDiscovery: &appmeshv1.ServiceDiscovery{
